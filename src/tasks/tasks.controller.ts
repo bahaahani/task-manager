@@ -1,6 +1,8 @@
 import { CreateTaskDto } from './dto/create-task.dto';
+import { TaskStatusValidationPipe } from './pipes/task-status-validation.pipe';
 import { TaskStatus } from './task.model';
 import { TasksService } from './tasks.service';
+import { GetTaskFilterDto } from './dto/get-task-filter.dto';
 import {
   Controller,
   Body,
@@ -9,29 +11,48 @@ import {
   Param,
   Patch,
   Delete,
+  NotFoundException,
+  Query,
 } from '@nestjs/common';
+import e from 'express';
 
 @Controller('tasks')
 export class TasksController {
-  constructor(private tasksService: TasksService) {}
+  constructor(private tasksService: TasksService) { }
 
   @Get()
   getAllTasks() {
     return this.tasksService.getAllTasks();
   }
+
+  @Get()
+  getTasks(@Query() filterDto: GetTaskFilterDto) {
+    if (Object.keys(filterDto).length) {
+      return this.tasksService.getTasksWithFilters(filterDto);
+    } else {
+      return this.tasksService.getAllTasks();
+    }
+  }
+
   @Post()
   createTask(@Body() createTaskDto: CreateTaskDto) {
     return this.tasksService.createTask(createTaskDto);
   }
   @Get(':id')
   getTaskById(@Param('id') id: string) {
-    return this.tasksService.getTaskById(id);
+    const found = this.tasksService.getTaskById(id);
+
+    if (!found) {
+      throw new NotFoundException(`Task with ID "${id}" not found`);
+    }
+
+    return found;
   }
 
   @Patch(':id/status')
   updateTaskStatus(
     @Param('id') id: string,
-    @Body('status') status: TaskStatus,
+    @Body('status', TaskStatusValidationPipe) status: TaskStatus,
   ) {
     return this.tasksService.updateTaskStatus(id, status);
   }
