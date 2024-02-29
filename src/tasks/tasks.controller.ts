@@ -1,6 +1,6 @@
 import { CreateTaskDto } from './dto/create-task.dto';
 import { TaskStatusValidationPipe } from './pipes/task-status-validation.pipe';
-import { TaskStatus } from './task.model';
+import { Task, TaskStatus } from './task.model';
 import { TasksService } from './tasks.service';
 import { GetTaskFilterDto } from './dto/get-task-filter.dto';
 import {
@@ -13,23 +13,20 @@ import {
   Delete,
   NotFoundException,
   Query,
+  ValidationPipe,
 } from '@nestjs/common';
-import e from 'express';
 
 @Controller('tasks')
 export class TasksController {
   constructor(private tasksService: TasksService) { }
 
   @Get()
-  getAllTasks() {
-    return this.tasksService.getAllTasks();
-  }
-
-  @Get()
-  getTasks(@Query() filterDto: GetTaskFilterDto) {
+  getTasks(@Query(ValidationPipe) filterDto: GetTaskFilterDto): Task[] {
     if (Object.keys(filterDto).length) {
+      console.log('filterDto', filterDto);
       return this.tasksService.getTasksWithFilters(filterDto);
     } else {
+      console.log('no filterDto');
       return this.tasksService.getAllTasks();
     }
   }
@@ -49,7 +46,7 @@ export class TasksController {
     return found;
   }
 
-  @Patch(':id/status')
+  @Patch(':id')
   updateTaskStatus(
     @Param('id') id: string,
     @Body('status', TaskStatusValidationPipe) status: TaskStatus,
