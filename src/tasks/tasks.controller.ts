@@ -3,15 +3,28 @@ import { TasksService } from './tasks.service';
 import { TaskStatus } from './task-status.interface';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { TaskStatusValidationPipe } from './pipes/task-status-validation.pipe';
-import { GetTasksFilterDto } from './dto/get-tasks-filter.dto';
-import { Task } from './entities/task.entity';
+import { TaskStatus } from './task.model';
+import { TasksService } from './tasks.service';
+import { GetTaskFilterDto } from './dto/get-task-filter.dto';
+import {
+  Controller,
+  Body,
+  Get,
+  Post,
+  Param,
+  Patch,
+  Delete,
+  NotFoundException,
+  Query,
+} from '@nestjs/common';
+import e from 'express';
 
 @Controller('tasks')
 export class TasksController {
   constructor(private tasksService: TasksService) {}
 
   @Get()
-  getTasks(@Query(ValidationPipe) filterDto: GetTasksFilterDto): any {
+  getTasks(@Query(ValidationPipe) filterDto: GetTaskFilterDto): Task[] {
     if (Object.keys(filterDto).length) {
       return this.tasksService.getTasksWithFilters(filterDto);
     } else {
@@ -35,8 +48,8 @@ export class TasksController {
     return this.tasksService.deleteTask(id);
   }
 
-  @Patch('/:id/status')
-  async updateTaskStatus(
+  @Patch(':id')
+  updateTaskStatus(
     @Param('id') id: string,
     @Body('status', TaskStatusValidationPipe) status: TaskStatus,
   ): Promise<Task> {

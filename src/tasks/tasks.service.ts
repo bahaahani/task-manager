@@ -42,11 +42,11 @@ export class TasksService {
     }
   }
 
-  async updateTaskStatus(id: string, status: TaskStatus): Promise<Task> {
-    const task = await this.taskRepository.findOne(id);
-
-    if (!task) {
-      throw new NotFoundException();
+  GetTaskFilterDto(filterDto: GetTaskFilterDto): Task[] {
+    const { status, search } = filterDto;
+    let tasks = this.getAllTasks();
+    if (status) {
+      tasks = tasks.filter((task) => task.status === status);
     }
 
     task.status = status;
